@@ -42,7 +42,7 @@ Coleção: `tarefas`
 
 ## 🧱 Diagrama Simplificado
 
-```
+```markdown
 tarefas
 │
 ├── _id : ObjectId
