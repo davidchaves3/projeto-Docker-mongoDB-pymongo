@@ -1,5 +1,6 @@
 import redis
 from datetime import datetime
+from datetime import timedelta
 
 r = redis.Redis(host='localhost', port=6379, decode_responses=True)
 USER_ID = "default"
@@ -20,3 +21,18 @@ def contar_tag(tag):
 def registrar_criacao_tarefa():
     chave = f"user:{USER_ID}:stats:productivity"
     r.hincrby(chave, "criadas_hoje", 1)
+
+def obter_conclusao_semanal():
+    hoje = datetime.now()
+    total = 0
+    dias = []
+
+    for i in range(7):
+        dia = (hoje - timedelta(days=i)).strftime("%Y-%m-%d")
+        chave = f"user:{USER_ID}:tasks:completed:{dia}"
+        valor = r.get(chave)
+        total += int(valor or 0)
+        dias.append((dia, int(valor or 0)))
+
+    return total, list(reversed(dias))  # lista do mais antigo para o mais recente
+

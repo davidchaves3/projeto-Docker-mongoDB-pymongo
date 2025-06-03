@@ -4,6 +4,7 @@ from crud import (
     deletar_tarefa
 )
 from datetime import datetime
+from metricas import r, USER_ID, obter_conclusao_semanal
 
 def mostrar_menu():
     print("\n=== MENU TAREFAS ===")
@@ -13,6 +14,7 @@ def mostrar_menu():
     print("4 - Atualizar status")
     print("5 - Adicionar comentário")
     print("6 - Deletar tarefa")
+    print("7 - Ver métricas de produtividade") 
     print("0 - Sair")
 
 def input_tags():
@@ -42,6 +44,43 @@ def listar():
         print(f"Tags: {', '.join(t['tags'])}")
         print(f"Criado em: {t['data_criacao']}")
         print(f"Comentários: {len(t.get('comentarios', []))}")
+
+def ver_metricas():
+    print("\n=== MÉTRICAS DE PRODUTIVIDADE ===\n")
+    print("Tarefas por status:")
+    for status in ["pendente", "em andamento", "concluída"]:
+        chave = f"user:{USER_ID}:tasks:status:{status}"
+        valor = r.get(chave)
+        print(f"  - {status}: {valor or 0}")
+
+    print("\nTags mais usadas:")
+    ranking = r.zrevrange(f"user:{USER_ID}:tags:top", 0, -1, withscores=True)
+    if ranking:
+        for tag, score in ranking:
+            print(f"  - {tag}: {int(score)}")
+    else:
+        print("  (Nenhuma tag registrada ainda)")
+
+    print("\nProdutividade diária:")
+    stats = r.hgetall(f"user:{USER_ID}:stats:productivity")
+    if stats:
+        criadas = stats.get("criadas_hoje", "0")
+        tempo_total = float(stats.get("tempo_total", "0"))
+        qtd = int(stats.get("quantidade", "0"))
+        media = (tempo_total / qtd) if qtd > 0 else 0
+
+        print(f"  - Tarefas criadas hoje: {criadas}")
+        print(f"  - Tempo total de conclusão: {int(tempo_total)} segundos")
+        print(f"  - Tempo médio por tarefa: {int(media)} segundos")
+    else:
+        print("  (Nenhuma estatística registrada ainda)")
+    print("\n🔸 Taxa de conclusão semanal (últimos 7 dias):")
+    total_semanal, dias = obter_conclusao_semanal()
+    print(f"  - Total: {total_semanal} tarefas concluídas")
+    for dia, qtd in dias:
+        print(f"    {dia}: {qtd}")
+
+
 
 def atualizar():
     id_str = input("ID da tarefa para atualizar: ").strip()
@@ -105,6 +144,8 @@ def main():
             adicionar_comentario_menu()
         elif opcao == '6':
             deletar()
+        elif opcao == '7':
+            ver_metricas()
         elif opcao == '0':
             print("Saindo...")
             break

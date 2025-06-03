@@ -1,4 +1,4 @@
-from metricas import contar_status, contar_conclusao_diaria, contar_tag, registrar_criacao_tarefa
+from metricas import contar_status, contar_conclusao_diaria, contar_tag, registrar_criacao_tarefa,obter_conclusao_semanal
 from pymongo import MongoClient
 from datetime import datetime
 from bson import ObjectId
