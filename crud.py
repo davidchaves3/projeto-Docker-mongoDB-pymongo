@@ -1,3 +1,4 @@
+from metricas import contar_status, contar_conclusao_diaria, contar_tag, registrar_criacao_tarefa
 from pymongo import MongoClient
 from datetime import datetime
 from bson import ObjectId
@@ -18,6 +19,11 @@ def criar_tarefa(titulo, descricao, status, tags, comentarios=[]):
         "comentarios": comentarios
     }
     resultado = tarefas.insert_one(tarefa)
+    registrar_criacao_tarefa()
+    contar_status(status)
+    for tag in tags:
+        contar_tag(tag)
+
     return str(resultado.inserted_id)
 
 # --- READ ---
@@ -61,6 +67,8 @@ def atualizar_tarefa(id_str, titulo=None, descricao=None, status=None, tags=None
 
     if not atualizacao:
         return 0  # Nada para atualizar
+    if status == "concluída":
+        contar_conclusao_diaria()
 
     resultado = tarefas.update_one({"_id": _id}, {"$set": atualizacao})
     return resultado.modified_count

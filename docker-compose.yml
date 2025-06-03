@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mongo:
-    image: mongo:7
+    image: mongo:4.4
     container_name: mongo
     ports:
       - '27017:27017'
@@ -27,6 +27,12 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: admin
     depends_on:
       - mongo
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
 
 volumes:
   mongo_data:
+
